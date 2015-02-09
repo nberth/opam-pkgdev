@@ -1,0 +1,82 @@
+# -*- makefile-gmake -*-
+# ----------------------------------------------------------------------
+#
+# Exmaple Makefile for OPAM package contruction.
+# 
+# Copyright (C) 2015 Nicolas Berthier
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# ----------------------------------------------------------------------
+
+# Customizable part.
+
+PKGNAME = exmaple-pkgname
+EXECS = exec1 exec2
+AVAILABLE_LIBs = lib1 lib2 acronym
+AVAILABLE_LIB_ITFs = lib1 lib2 aCRONYM
+INSTALL_LIBS = yes
+INSTALL_DOCS = yes
+ENABLE_BYTE = yes
+ENABLE_NATIVE = no
+
+# This file should define PREFIX and DOCDIR variables, using a
+# configure script for instance; they could also be setup directly.
+-include config.mk
+
+# ---
+
+MENHIRFLAGS = --fixed-exception
+OCAMLBUILDFLAGS = -use-menhir -menhir "menhir $(MENHIRFLAGS)" -j 8
+
+# Use it in case documentation comments contrain UTF-8 characters:
+OCAMLDOCFLAGS = -charset iso-10646-1
+
+# Customization of error message when PREFIX is needed but undefined:
+NO_PREFIX_ERROR_MSG = Missing prefix: execute configure script first
+
+# ---
+
+# The git submodule directory containing `generic.mk':
+OPAM_PKGDEV_DIR = opam-pkgdev
+
+# OPAM package descriptors, and files to include in the source
+# distribution archive:
+OPAM_DIR = opam
+OPAM_FILES = descr opam
+DIST_FILES = configure LICENSE Makefile myocamlbuild.ml README src	\
+    _tags version.ml.in TODO META
+
+# ----------------------------------------------------------------------
+
+# Leave this part as is:
+
+-include generic.mk
+
+GENERIC_MK = $(OPAM_PKGDEV_DIR)/generic.mk
+generic.mk:
+	@if test -f $(GENERIC_MK); then ln -s $(GENERIC_MK) $@;		\
+	 elif test \! -f generic.mk; then echo				\
+"To build from this development tree, you first need to retrieve the"	\
+"$(OPAM_PKGDEV_DIR) submodule using \`git submodule update'."		\
+	 >/dev/stderr; exit 1; fi;
+
+# -----------------------------------------------------------------------
+
+# Insert further rules here:
+
+# To be used in combination with a configure script, for instance.
+.PHONY: distclean
+distclean: force clean clean-version
+	$(QUIET)rm -f config.mk

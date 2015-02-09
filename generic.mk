@@ -19,6 +19,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # ----------------------------------------------------------------------
+#
+# See `Makefile.example' in `opam-pkgdev' source repository for usage
+# information.
+#
+# ----------------------------------------------------------------------
+
+QUIET ?= @
 
 # Check at least the eval construct to reject old implementations of
 # make.
@@ -59,34 +66,32 @@ endif
 
 # ---
 
+OCAMLBUILD ?= ocamlbuild -use-ocamlfind
+OCAMLDOC ?= ocamldoc
+NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
+
+# ---
+
 .PHONY: all
 all: force version.ml.in
-	$(QUIET)$(OCAMLBUILD) $(TARGETS)
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TARGETS)
 
 .PHONY: clean
 clean: force
 	$(QUIET)rm -f META
-	$(QUIET)$(OCAMLBUILD) -clean
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) -clean
 
-.PHONY: distclean
-distclean: force clean clean-version
-	$(QUIET)rm -f config.mk
+.PHONY: force
+force:
 
 # ---
 
 .PHONY: doc
 doc: force
-	$(QUIET)$(OCAMLBUILD) -I .					\
-	  -ocamldoc "ocamldoc -charset iso-10646-1"			\
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) -I .			\
+	  -ocamldoc "$(OCAMLDOC) $(OCAMLDOCFLAGS)"			\
 	  -no-sanitize -no-hygiene					\
 	  $(foreach p,$(AVAILABLE_LIBs),src/$(p).docdir/index.html)
-
-.PHONY: cleandoc
-cleandoc:
-	$(QUIET)rm doc -Rf
-
-.PHONY: force
-force:
 
 # ---
 
@@ -127,8 +132,6 @@ endif
 
 checkvar = $(or $(value $(1)),$(eval $$(error $(2))))
 
-NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
-
 .PHONY: chk-prefix
 chk-prefix: force
 	$(eval $@_P := $(call checkvar,PREFIX,$(NO_PREFIX_ERROR_MSG)))
@@ -150,6 +153,7 @@ uninstall: chk-prefix uninstall-findlib uninstall-doc
 
 # ---
 
+# The following indicates we are possibly installing through OPAM:
 ifneq ($(OPAM_PACKAGE_NAME),)
 .PHONY: install-opam
 install-opam: install-findlib install-doc all doc force
@@ -179,46 +183,50 @@ endif
 # In case we are in a development directory, with `git' hopefully:
 HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" && \
 	          echo yes || echo no)
-.PHONY: clean-version
 ifeq ($(HAS_GIT),yes)
-  VERSION_STR = $(shell git describe --tags --always)
-  # XXX remove commit info that is appended at the end for
-  # readability: this is ok as long as we have only one branch.
-  # VERSION_STR := $(patsubst %-g$(shell git describe --always	\
-  #                                       --abbrev),%, $(VERSION_STR)))
-  clean-version: force
-	rm -f version.ml.in
+  VERSION_STR ?= $(shell git describe --tags --always)
+  ifeq ($(STRIP_VERSION_STR),yes)
+    # Remove commit info that is appended at the end for readability:
+    # this is ok as long as we have only one branch.
+    VERSION_STR := $(patsubst %-g$(shell git describe --always	\
+                     --abbrev),%,$(VERSION_STR))
+  endif
 else
-  VERSION_STR = unknown
-  clean-version:
+  VERSION_STR ?= unknown
 endif
 
 # ---
 
 ifneq ($(OPAM_DEVEL_DIR),)
+  DIST_FILES += $(OPAM_PKGDEV_DIR)/generic.mk
   -include $(OPAM_DEVEL_DIR)/opam-dist.mk
   opam-package: META
 endif
 
 # ---
 
+.PHONY: clean-version
 ifneq ($(VERSION_STR),unknown)
   opam-package: force-rebuild-version.ml.in
 
   .PHONY: force-rebuild-version.ml.in
   force-rebuild-version.ml.in: force
-	@rm -f version.ml.in && $(MAKE) --no-print-directory		\
+	$(QUIET)rm -f version.ml.in && $(MAKE) --no-print-directory	\
 	  version.ml.in
 
   version.ml.in:
 	@echo "Creating \`$@'." >/dev/stderr;
 	$(QUIET)echo "let str = \"$(VERSION_STR)\"" >$@
 
+  clean-version: force
+	rm -f version.ml.in
+
   META_FILES = etc/META.in $(addprefix etc/META.,$(AVAILABLE_LIBs))
 
   META: $(META_FILES) force
 	sed -e "s __VERSION_STR__ $(VERSION_STR) g" $(META_FILES) > $@
 else
+  clean-version:
   META:
 	$(eval __DUMMY__ := $$(error Unable to create META file))
 endif
