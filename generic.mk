@@ -221,10 +221,14 @@ ifneq ($(VERSION_STR),unknown)
   clean-version: force
 	rm -f version.ml.in
 
-  META_FILES = etc/META.in $(addprefix etc/META.,$(AVAILABLE_LIBs))
+  ifneq ($(wildcard etc/META.in),)
+    META_FILES = etc/META.in $(addprefix etc/META.,$(AVAILABLE_LIBs))
 
-  META: $(META_FILES) force
+    META: $(META_FILES) force
 	sed -e "s __VERSION_STR__ $(VERSION_STR) g" $(META_FILES) > $@
+  else
+    META:
+  endif
 else
   clean-version:
   META:
