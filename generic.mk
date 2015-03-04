@@ -200,7 +200,7 @@ endif
 ifneq ($(OPAM_DEVEL_DIR),)
   DIST_FILES += $(OPAM_PKGDEV_DIR)/generic.mk
   -include $(OPAM_DEVEL_DIR)/opam-dist.mk
-  opam-package: META
+  opam-package: META.in
 endif
 
 # ---
@@ -219,20 +219,27 @@ ifneq ($(VERSION_STR),unknown)
 	$(QUIET)echo "let str = \"$(VERSION_STR)\"" >$@
 
   clean-version: force
-	rm -f version.ml.in
+	rm -f version.ml.in META.in
 
   ifneq ($(wildcard etc/META.in),)
-    META_FILES = etc/META.in $(addprefix etc/META.,$(AVAILABLE_LIBs))
-
-    META: $(META_FILES) force
-	sed -e "s __VERSION_STR__ $(VERSION_STR) g" $(META_FILES) > $@
+    META.in: etc/META.in force
+	sed -e "s __VERSION_STR__ $(VERSION_STR) g" $< > $@
   else
-    META:
+    META.in:
   endif
+
 else
   clean-version:
-  META:
-	$(eval __DUMMY__ := $$(error Unable to create META file))
+  META.in:
+	$(eval __DUMMY__ := $$(error Unable to create META.in file))
+endif
+
+# ---
+
+ifneq ($(AVAILABLE_LIBs),)
+  META_FILES = META.in $(addprefix etc/META.,$(AVAILABLE_LIBs))
+  META: $(META_FILES)
+	cat $+ > $@
 endif
 
 # -----------------------------------------------------------------------
