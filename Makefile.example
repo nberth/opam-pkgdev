@@ -22,10 +22,22 @@
 
 # Customizable part.
 
+# OPAM package name.
 PKGNAME = exmaple-pkgname
+
+# Lists below can be left empty when needed.
+
+# OCaml executable to be compiled.
 EXECS = exec1 exec2
+# OCaml libraries to be compiled, accompanied with their interfaces.
 AVAILABLE_LIBs = lib1 lib2 acronym
 AVAILABLE_LIB_ITFs = lib1 lib2 aCRONYM
+
+# Files to be installed in the binary directory, that do not need to
+# be compiled yet.
+EXTRA_EXECS =
+
+# Further flags.
 INSTALL_LIBS = yes
 INSTALL_DOCS = yes
 ENABLE_BYTE = yes

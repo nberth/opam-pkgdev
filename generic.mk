@@ -54,6 +54,8 @@ ifeq ($(ENABLE_NATIVE),yes)
   TARGETS += $(addprefix src/main/,$(addsuffix .native,$(EXECS)))
 endif
 
+TARGETS := $(strip $(TARGETS))
+
 # ---
 
 NATIVE_EXT = .opt
@@ -66,6 +68,10 @@ endif
 
 # ---
 
+# Set this variable to another desired value to avoid creating
+# `version.ml.in'.
+EXTRA_DEPS ?= version.ml.in
+
 OCAMLBUILD ?= ocamlbuild -use-ocamlfind
 OCAMLDOC ?= ocamldoc
 NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
@@ -73,13 +79,19 @@ NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
 # ---
 
 .PHONY: all
-all: force version.ml.in
+all: force $(EXTRA_DEPS)
+  ifneq ($(TARGETS),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TARGETS)
+  else
+	$(QUIET)echo "Nothing to build."
+  endif
 
 .PHONY: clean
 clean: force
 	$(QUIET)rm -f META
+  ifneq ($(TARGETS),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) -clean
+  endif
 
 .PHONY: force
 force:
@@ -144,12 +156,16 @@ install: chk-prefix all install-findlib install-doc
 	$(foreach e,$(EXECS), [ -x "_build/src/main/$(e).native" ] &&	\
 	  install "_build/src/main/$(e).native"				\
 	    "$(PREFIX)/bin/$(e)$(NATIVE_EXT)" || exit 0;)
+	$(foreach e,$(EXTRA_EXECS), [ -x "$(e)" ] &&	\
+	  install "$(e)" "$(PREFIX)/bin/$(basename $(e))" || exit 0;)
 
 .PHONY: uninstall
 uninstall: chk-prefix uninstall-findlib uninstall-doc
 	-$(foreach e,$(EXECS),						\
 	  rm -f "$(PREFIX)/bin/$(e)$(BYTE_EXT)"				\
 	        "$(PREFIX)/bin/$(e)$(NATIVE_EXT)";)
+	-$(foreach e,$(EXTRA_EXECS),					\
+	  rm -f "$(PREFIX)/bin/$(basename $(e))";)
 
 # ---
 
@@ -169,6 +185,11 @@ install-opam: install-findlib install-doc all doc force
 	  $(foreach e,$(EXECS),						\
 	    echo ' "_build/src/main/$(e).native"			\
 	      {"$(e)'$(NATIVE_EXT)'"}';)
+    endif
+    ifneq ($(strip $(EXTRA_EXECS)),)
+	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
+	  $(foreach e,$(EXTRA_EXECS),					\
+	    echo ' "$(e)" {"$(basename $(e))"}';)
     endif
 	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
 	  echo ']';
