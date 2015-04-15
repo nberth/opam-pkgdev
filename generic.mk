@@ -172,6 +172,8 @@ install: chk-prefix all install-findlib install-doc
 	    "$(PREFIX)/bin/$(e)$(NATIVE_EXT)" || exit 0;)
 	$(foreach e,$(EXTRA_EXECS), [ -x "$(e)" ] &&	\
 	  install "$(e)" "$(PREFIX)/bin/$(basename $(e))" || exit 0;)
+	$(foreach e,$(EXTRA_LIBs), [ -x "$(e)" ] &&	\
+	  install "$(e)" "$(PREFIX)/lib/$(basename $(e))" || exit 0;)
 
 .PHONY: uninstall
 uninstall: chk-prefix uninstall-findlib uninstall-doc
@@ -180,6 +182,8 @@ uninstall: chk-prefix uninstall-findlib uninstall-doc
 	        "$(PREFIX)/bin/$(e)$(NATIVE_EXT)";)
 	-$(foreach e,$(EXTRA_EXECS),					\
 	  rm -f "$(PREFIX)/bin/$(basename $(e))";)
+	-$(foreach e,$(EXTRA_LIBs),					\
+	  rm -f "$(PREFIX)/lib/$(basename $(e))";)
 
 # ---
 
@@ -203,6 +207,15 @@ install-opam: install-findlib install-doc build doc force
     ifneq ($(strip $(EXTRA_EXECS)),)
 	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
 	  $(foreach e,$(EXTRA_EXECS),					\
+	    echo ' "$(e)" {"$(basename $(e))"}';)
+    endif
+	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
+	  echo ']';
+	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
+	  echo 'lib: [';
+    ifneq ($(strip $(EXTRA_LIBs)),)
+	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
+	  $(foreach e,$(EXTRA_LIBs),					\
 	    echo ' "$(e)" {"$(basename $(e))"}';)
     endif
 	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\

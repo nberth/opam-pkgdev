@@ -23,7 +23,7 @@
 # Customizable part.
 
 # OPAM package name.
-PKGNAME = exmaple-pkgname
+PKGNAME = example-pkgname
 
 # Lists below can be left empty when needed.
 
@@ -36,6 +36,8 @@ AVAILABLE_LIB_ITFs = lib1 lib2 aCRONYM
 # Files to be installed in the binary directory, that do not need to
 # be compiled yet.
 EXTRA_EXECS =
+# Ibid in the case of libraries.
+EXTRA_LIBs =
 
 # Further flags.
 INSTALL_LIBS = yes
