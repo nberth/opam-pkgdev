@@ -57,6 +57,12 @@ OCAMLDOCFLAGS = -charset iso-10646-1
 
 # Customization of error message when PREFIX is needed but undefined:
 NO_PREFIX_ERROR_MSG = Missing prefix: execute configure script first
+NO_DOCDIR_ERROR_MSG = Missing documentation directory: execute		\
+		      configure script first
+
+# Uncomment the following line to disable automatic creation of
+# version.ml.in:
+# BUILD_VERSION_ML_IN = no
 
 # ---
 

@@ -68,18 +68,21 @@ endif
 
 # ---
 
-# Set this variable to another desired value to avoid creating
-# `version.ml.in'.
-EXTRA_DEPS ?= version.ml.in
-
 OCAMLBUILD ?= ocamlbuild -use-ocamlfind
 OCAMLDOC ?= ocamldoc
 NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
+NO_DOCDIR_ERROR_MSG ?= Missing documentation directory: use \
+                       "make DOCDIR=..."
+BUILD_VERSION_ML_IN ?= yes
+
+ifeq ($(BUILD_VERSION_ML_IN),yes)
+  EXTRA_DEPS += version.ml.in
+endif
 
 # ---
 
-.PHONY: all
-all: force $(EXTRA_DEPS)
+.PHONY: build
+build: force $(EXTRA_DEPS)
   ifneq ($(TARGETS),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TARGETS)
   else
@@ -100,16 +103,18 @@ force:
 
 .PHONY: doc
 doc: force
+ifneq ($(strip $(AVAILABLE_LIBs)),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) -I .			\
 	  -ocamldoc "$(OCAMLDOC) $(OCAMLDOCFLAGS)"			\
 	  -no-sanitize -no-hygiene					\
 	  $(foreach p,$(AVAILABLE_LIBs),src/$(p).docdir/index.html)
+endif
 
 # ---
 
 .PHONY: install-findlib uninstall-findlib
 ifeq ($(INSTALL_LIBS),yes)
-  install-findlib: META all
+  install-findlib: META build
 	-ocamlfind remove $(PKGNAME) 2> /dev/null;
 	ocamlfind install $(PKGNAME) META				\
 	  $(foreach p,$(AVAILABLE_LIBs),                 		\
@@ -120,20 +125,35 @@ ifeq ($(INSTALL_LIBS),yes)
 	ocamlfind remove $(PKGNAME)
 else
   install-findlib:
+  ifneq ($(strip $(AVAILABLE_LIBs)),)
+	$(QUIET)echo "Unable to install libraries";
+  endif
   uninstall-findlib:
 endif
 
 # ---
 
+# Force errors in case of empty variable definitions, even in dry run.
+
+checkvar = $(or $(value $(1)),$(eval $$(error $(2))))
+
+.PHONY: chk-prefix chk-docdir
+chk-prefix: force
+	$(eval $@_P := $(call checkvar,PREFIX,$(NO_PREFIX_ERROR_MSG)))
+chk-docdir: force
+	$(eval $@_P := $(call checkvar,DOCDIR,$(NO_DOCDIR_ERROR_MSG)))
+
+# ---
+
 .PHONY: install-doc uninstall-doc
 ifeq ($(INSTALL_DOCS),yes)
-  install-doc: doc
+  install-doc: chk-docdir doc
 	rm -rf "$(DOCDIR)/$(PKGNAME)";
 	mkdir -p "$(DOCDIR)/$(PKGNAME)";
 	$(foreach p,$(AVAILABLE_LIBs),cp -r "_build/src/$(p).docdir"	\
 	  "$(DOCDIR)/$(PKGNAME)/$(p)";)
 
-  uninstall-doc: force
+  uninstall-doc: chk-docdir force
 	rm -rf "$(DOCDIR)/$(PKGNAME)";
 else
   install-doc:
@@ -141,12 +161,6 @@ else
 endif
 
 # ---
-
-checkvar = $(or $(value $(1)),$(eval $$(error $(2))))
-
-.PHONY: chk-prefix
-chk-prefix: force
-	$(eval $@_P := $(call checkvar,PREFIX,$(NO_PREFIX_ERROR_MSG)))
 
 .PHONY: install
 install: chk-prefix all install-findlib install-doc
@@ -172,7 +186,7 @@ uninstall: chk-prefix uninstall-findlib uninstall-doc
 # The following indicates we are possibly installing through OPAM:
 ifneq ($(OPAM_PACKAGE_NAME),)
 .PHONY: install-opam
-install-opam: install-findlib install-doc all doc force
+install-opam: install-findlib install-doc build doc force
 	$(QUIET)exec 1>"$(OPAM_PACKAGE_NAME).install";			\
 	  echo 'bin: [';
     ifeq ($(ENABLE_BYTE),yes)
@@ -228,16 +242,18 @@ endif
 
 .PHONY: clean-version
 ifneq ($(VERSION_STR),unknown)
-  opam-package: force-rebuild-version.ml.in
+  ifeq ($(BUILD_VERSION_ML_IN),yes)
+    opam-package: force-rebuild-version.ml.in
 
-  .PHONY: force-rebuild-version.ml.in
-  force-rebuild-version.ml.in: force
+    .PHONY: force-rebuild-version.ml.in
+    force-rebuild-version.ml.in: force
 	$(QUIET)rm -f version.ml.in && $(MAKE) --no-print-directory	\
 	  version.ml.in
 
-  version.ml.in:
+    version.ml.in:
 	@echo "Creating \`$@'." >/dev/stderr;
 	$(QUIET)echo "let str = \"$(VERSION_STR)\"" >$@
+  endif
 
   clean-version: force
 	rm -f version.ml.in META.in
