@@ -163,7 +163,7 @@ endif
 # ---
 
 .PHONY: install
-install: chk-prefix all install-findlib install-doc
+install: chk-prefix build install-findlib install-doc
 	$(foreach e,$(EXECS), [ -x "_build/src/main/$(e).byte" ] &&	\
 	  install "_build/src/main/$(e).byte"				\
 	    "$(PREFIX)/bin/$(e)$(BYTE_EXT)" || exit 0;)
