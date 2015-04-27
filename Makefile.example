@@ -44,6 +44,8 @@ INSTALL_LIBS = yes
 INSTALL_DOCS = yes
 ENABLE_BYTE = yes
 ENABLE_NATIVE = no
+ENABLE_DEBUG = no
+ENABLE_PROFILING = no
 
 # This file should define PREFIX and DOCDIR variables, using a
 # configure script for instance; they could also be setup directly.

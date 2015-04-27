@@ -53,6 +53,12 @@ endif
 ifeq ($(ENABLE_NATIVE),yes)
   TARGETS += $(addprefix src/main/,$(addsuffix .native,$(EXECS)))
 endif
+ifeq ($(ENABLE_DEBUG),yes)
+  TARGETS += $(addprefix src/main/,$(addsuffix .d.byte,$(EXECS)))
+endif
+ifeq ($(ENABLE_PROFILING),yes)
+  TARGETS += $(addprefix src/main/,$(addsuffix .p.native,$(EXECS)))
+endif
 
 TARGETS := $(strip $(TARGETS))
 
