@@ -251,9 +251,9 @@ endif
 
 # ---
 
-ifneq ($(OPAM_DEVEL_DIR),)
+ifneq ($(OPAM_DIST_DIR),)
   DIST_FILES += $(OPAM_PKGDEV_DIR)/generic.mk
-  -include $(OPAM_DEVEL_DIR)/opam-dist.mk
+  -include $(OPAM_DIST_DIR)/opam-dist.mk
   opam-package: META.in
 endif
 
