@@ -254,7 +254,7 @@ endif
 ifneq ($(OPAM_DIST_DIR),)
   DIST_FILES += $(OPAM_PKGDEV_DIR)/generic.mk
   -include $(OPAM_DIST_DIR)/opam-dist.mk
-  opam-package: META.in
+  opam-dist-arch: META.in
 endif
 
 # ---
@@ -262,7 +262,7 @@ endif
 .PHONY: clean-version
 ifneq ($(VERSION_STR),unknown)
   ifeq ($(BUILD_VERSION_ML_IN),yes)
-    opam-package: force-rebuild-version.ml.in
+    opam-dist-arch: force-rebuild-version.ml.in
 
     .PHONY: force-rebuild-version.ml.in
     force-rebuild-version.ml.in: force
