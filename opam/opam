@@ -1,0 +1,7 @@
+opam-version: "1.2"
+maintainer: "Nicolas Berthier <m@nberth.space>"
+author: "Nicolas Berthier <m@nberth.space>"
+homepage: "https://github.com/nberth/opam-pkgdev"
+dev-repo: "https://github.com/nberth/opam-pkgdev.git"
+bug-reports: "https://github.com/nberth/opam-pkgdev/issues"
+license: "GPL-v3"

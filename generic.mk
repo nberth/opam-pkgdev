@@ -195,8 +195,8 @@ uninstall: chk-prefix uninstall-findlib uninstall-doc
 
 # The following indicates we are possibly installing through OPAM:
 ifneq ($(OPAM_PACKAGE_NAME),)
-.PHONY: install-opam
-install-opam: install-findlib install-doc build doc force
+  .PHONY: install-opam
+  install-opam: install-findlib install-doc build doc force
 	$(QUIET)exec 1>"$(OPAM_PACKAGE_NAME).install";			\
 	  echo 'bin: [';
     ifeq ($(ENABLE_BYTE),yes)
@@ -227,9 +227,9 @@ install-opam: install-findlib install-doc build doc force
 	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
 	  echo ']';
 
-.PHONY: uninstall-opam
-uninstall-opam: uninstall-findlib uninstall-doc
-# Note the documentation directory could be removed by OPAM.
+  .PHONY: uninstall-opam
+  uninstall-opam: uninstall-findlib uninstall-doc
+  # Note the documentation directory could be removed by OPAM.
 endif
 
 # ---
