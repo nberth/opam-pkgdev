@@ -235,18 +235,25 @@ endif
 # ---
 
 # In case we are in a development directory, with `git' hopefully:
-HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" && \
+HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 	          echo yes || echo no)
 ifeq ($(HAS_GIT),yes)
   VERSION_STR ?= $(shell git describe --tags --always)
   ifeq ($(STRIP_VERSION_STR),yes)
     # Remove commit info that is appended at the end for readability:
     # this is ok as long as we have only one branch.
-    VERSION_STR := $(patsubst %-g$(shell git describe --always	\
+    VERSION_STR := $(patsubst %-g$(shell git describe --always		\
                      --abbrev),%,$(VERSION_STR))
   endif
 else
-  VERSION_STR ?= unknown
+  # Try to guess from project directory name:
+  ROOT_DIRNAME = $(dir $(firstword $(MAKEFILE_LIST)))
+  VERSION_STR0 = $(notdir $(abspath $(ROOT_DIRNAME)))
+  __EXTRACT_VERS = \
+    $(strip $(patsubst $(PKGNAME)$(1)%,%,$(filter $(PKGNAME)$(1)%,$(2))))
+  VERSION_STR ?= $(strip $(or $(call __EXTRACT_VERS,.,$(VERSION_STR0)),\
+			      $(call __EXTRACT_VERS,-,$(VERSION_STR0)),\
+			      unknown))
 endif
 
 # ---
@@ -268,11 +275,11 @@ ifneq ($(VERSION_STR),unknown)
     force-rebuild-version.ml.in: force
 	$(QUIET)rm -f version.ml.in && $(MAKE) --no-print-directory	\
 	  version.ml.in
+  endif
 
-    version.ml.in:
+  version.ml.in:
 	@echo "Creating \`$@'." >/dev/stderr;
 	$(QUIET)echo "let str = \"$(VERSION_STR)\"" >$@
-  endif
 
   clean-version: force
 	rm -f version.ml.in META.in
