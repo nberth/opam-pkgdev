@@ -21,14 +21,16 @@
 # -----------------------------------------------------------------------
 
 PKGNAME = opam-pkgdev
-VERSION_STR = $(shell git describe --tags --always)
+PKGVERS = $(shell git describe --tags --always)
 
-ifneq ($(OPAM_DIST_DIR),)
-  OPAM_DIR = opam
-  OPAM_FILES = descr opam
-  DIST_FILES = generic.mk LICENSE Makefile Makefile.example	\
-		opam-pkgdev.install README.md
-  -include $(OPAM_DIST_DIR)/opam-dist.mk
+OPAM_DIR = opam
+OPAM_FILES = descr opam
+DIST_FILES = generic.mk LICENSE Makefile Makefile.example	\
+	     opam-pkgdev.install README.md
+ifndef OPAM_DIST_DIR
+  $(error OPAM_DIST_DIR must be defined to build this package)
+else
+  include $(OPAM_DIST_DIR)/opam-dist.mk
 endif
 
 # -----------------------------------------------------------------------

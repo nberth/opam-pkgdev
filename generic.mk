@@ -238,22 +238,22 @@ endif
 HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 	          echo yes || echo no)
 ifeq ($(HAS_GIT),yes)
-  VERSION_STR ?= $(shell git describe --tags --always)
+  PKGVERS ?= $(shell git describe --tags --always)
   ifeq ($(STRIP_VERSION_STR),yes)
     # Remove commit info that is appended at the end for readability:
     # this is ok as long as we have only one branch.
-    VERSION_STR := $(patsubst %-g$(shell git describe --always		\
-                     --abbrev),%,$(VERSION_STR))
+    PKGVERS := $(patsubst %-g$(shell git describe --always		\
+                     --abbrev),%,$(PKGVERS))
   endif
 else
   # Try to guess from project directory name:
   ROOT_DIRNAME = $(dir $(firstword $(MAKEFILE_LIST)))
-  VERSION_STR0 = $(notdir $(abspath $(ROOT_DIRNAME)))
+  PKGVERS0 = $(notdir $(abspath $(ROOT_DIRNAME)))
   __EXTRACT_VERS = \
     $(strip $(patsubst $(PKGNAME)$(1)%,%,$(filter $(PKGNAME)$(1)%,$(2))))
-  VERSION_STR ?= $(strip $(or $(call __EXTRACT_VERS,.,$(VERSION_STR0)),\
-			      $(call __EXTRACT_VERS,-,$(VERSION_STR0)),\
-			      unknown))
+  PKGVERS ?= $(strip $(or $(call __EXTRACT_VERS,.,$(PKGVERS0)),\
+			  $(call __EXTRACT_VERS,-,$(PKGVERS0)),\
+			  unknown))
 endif
 
 # ---
@@ -267,7 +267,7 @@ endif
 # ---
 
 .PHONY: clean-version
-ifneq ($(VERSION_STR),unknown)
+ifneq ($(PKGVERS),unknown)
   ifeq ($(BUILD_VERSION_ML_IN),yes)
     opam-dist-arch: force-rebuild-version.ml.in
 
@@ -279,19 +279,21 @@ ifneq ($(VERSION_STR),unknown)
 
   version.ml.in:
 	@echo "Creating \`$@'." >/dev/stderr;
-	$(QUIET)echo "let str = \"$(VERSION_STR)\"" >$@
+	$(QUIET)echo "let str = \"$(PKGVERS)\"" >$@
 
   clean-version: force
 	rm -f version.ml.in META.in
 
   ifneq ($(wildcard etc/META.in),)
     META.in: etc/META.in force
-	sed -e "s __VERSION_STR__ $(VERSION_STR) g" $< > $@
+	sed -e "s __VERSION_STR__ $(PKGVERS) g;\
+	        s __PKGVERS__ $(PKGVERS) g;" $< > $@
   else
     META.in:
   endif
 
 else
+  $(warning Unable to guess package version)
   clean-version:
   META.in:
 	$(eval __DUMMY__ := $$(error Unable to create META.in file))
