@@ -26,6 +26,7 @@
 # ----------------------------------------------------------------------
 
 QUIET ?= @
+SRC ?= src
 
 # Check at least the eval construct to reject old implementations of
 # make.
@@ -48,16 +49,16 @@ TARGETS = $(foreach p,$(AVAILABLE_LIBs),$(addprefix $(p).,$(LIBSUFF)))
 TARGETS += $(foreach p,$(AVAILABLE_LIB_ITFs),$(p).cmi)
 
 ifeq ($(ENABLE_BYTE),yes)
-  TARGETS += $(addprefix src/main/,$(addsuffix .byte,$(EXECS)))
+  TARGETS += $(addsuffix .byte,$(EXECS))
 endif
 ifeq ($(ENABLE_NATIVE),yes)
-  TARGETS += $(addprefix src/main/,$(addsuffix .native,$(EXECS)))
+  TARGETS += $(addsuffix .native,$(EXECS))
 endif
 ifeq ($(ENABLE_DEBUG),yes)
-  TARGETS += $(addprefix src/main/,$(addsuffix .d.byte,$(EXECS)))
+  TARGETS += $(addsuffix .d.byte,$(EXECS))
 endif
 ifeq ($(ENABLE_PROFILING),yes)
-  TARGETS += $(addprefix src/main/,$(addsuffix .p.native,$(EXECS)))
+  TARGETS += $(addsuffix .p.native,$(EXECS))
 endif
 
 TARGETS := $(strip $(TARGETS))
@@ -110,10 +111,10 @@ force:
 .PHONY: doc
 doc: force
 ifneq ($(strip $(AVAILABLE_LIBs)),)
-	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) -I .			\
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS)			\
 	  -ocamldoc "$(OCAMLDOC) $(OCAMLDOCFLAGS)"			\
 	  -no-sanitize -no-hygiene					\
-	  $(foreach p,$(AVAILABLE_LIBs),src/$(p).docdir/index.html)
+	  $(foreach p,$(AVAILABLE_LIBs),$(SRC)/$(p).docdir/index.html)
 endif
 
 # ---
@@ -124,8 +125,8 @@ ifeq ($(INSTALL_LIBS),yes)
 	-ocamlfind remove $(PKGNAME) 2> /dev/null;
 	ocamlfind install $(PKGNAME) META				\
 	  $(foreach p,$(AVAILABLE_LIBs),                 		\
-	    $(addprefix _build/src/$(p).,$(LIBSUFF)))			\
-	  $(foreach p,$(AVAILABLE_LIB_ITFs),_build/src/$(p).cmi)
+	    $(addprefix _build/$(SRC)/$(p).,$(LIBSUFF)))		\
+	  $(foreach p,$(AVAILABLE_LIB_ITFs),_build/$(SRC)/$(p).cmi)
 
   uninstall-findlib: force
 	ocamlfind remove $(PKGNAME)
@@ -156,7 +157,7 @@ ifeq ($(INSTALL_DOCS),yes)
   install-doc: chk-docdir doc
 	rm -rf "$(DOCDIR)/$(PKGNAME)";
 	mkdir -p "$(DOCDIR)/$(PKGNAME)";
-	$(foreach p,$(AVAILABLE_LIBs),cp -r "_build/src/$(p).docdir"	\
+	$(foreach p,$(AVAILABLE_LIBs),cp -r "_build/$(SRC)/$(p).docdir"	\
 	  "$(DOCDIR)/$(PKGNAME)/$(p)";)
 
   uninstall-doc: chk-docdir force
