@@ -64,11 +64,11 @@ TARGETS := $(strip $(TARGETS))
 
 # ---
 
-NATIVE_EXT = .opt
+OPT_EXT = .opt
 BYTE_EXT = 
 ifeq ($(ENABLE_NATIVE),yes)
   ifneq ($(ENABLE_BYTE),yes)
-    NATIVE_EXT = 
+    OPT_EXT =
   endif
 endif
 
@@ -168,24 +168,31 @@ endif
 
 # ---
 
+ALL_BINS = $(strip $(EXECS) $(EXTRA_EXECS))
+ALL_LIBS = $(strip $(EXTRA_LIBs))
+
 .PHONY: install
 install: chk-prefix build install-findlib install-doc
-	$(foreach e,$(EXECS), [ -x "_build/src/main/$(e).byte" ] &&	\
-	  install "_build/src/main/$(e).byte"				\
-	    "$(PREFIX)/bin/$(e)$(BYTE_EXT)" || exit 0;)
-	$(foreach e,$(EXECS), [ -x "_build/src/main/$(e).native" ] &&	\
-	  install "_build/src/main/$(e).native"				\
-	    "$(PREFIX)/bin/$(e)$(NATIVE_EXT)" || exit 0;)
-	$(foreach e,$(EXTRA_EXECS), [ -x "$(e)" ] &&	\
-	  install "$(e)" "$(PREFIX)/bin/$(basename $(e))" || exit 0;)
-	$(foreach e,$(EXTRA_LIBs), [ -x "$(e)" ] &&	\
-	  install "$(e)" "$(PREFIX)/lib/$(basename $(e))" || exit 0;)
+  ifneq ($(ALL_BINS),)
+	install -d "$(PREFIX)/bin";
+	$(foreach e,$(EXECS), [ -x "$(e).byte" ] &&			\
+	  install "$(e).byte" "$(PREFIX)/bin/$(e)$(BYTE_EXT)" || true;)
+	$(foreach e,$(EXECS), [ -x "$(e).native" ] &&			\
+	  install "$(e).native" "$(PREFIX)/bin/$(e)$(OPT_EXT)" || true;)
+	$(foreach e,$(EXTRA_EXECS), [ -x "$(e)" ] &&			\
+	  install "$(e)" "$(PREFIX)/bin/$(basename $(e))" || true;)
+  endif
+  ifneq ($(ALL_LIBS),)
+	install -d "$(PREFIX)/lib";
+	$(foreach e,$(EXTRA_LIBs), [ -f "$(e)" ] &&			\
+	  install "$(e)" "$(PREFIX)/lib/$(basename $(e))" || true;)
+  endif
 
 .PHONY: uninstall
 uninstall: chk-prefix uninstall-findlib uninstall-doc
 	-$(foreach e,$(EXECS),						\
 	  rm -f "$(PREFIX)/bin/$(e)$(BYTE_EXT)"				\
-	        "$(PREFIX)/bin/$(e)$(NATIVE_EXT)";)
+	        "$(PREFIX)/bin/$(e)$(OPT_EXT)";)
 	-$(foreach e,$(EXTRA_EXECS),					\
 	  rm -f "$(PREFIX)/bin/$(basename $(e))";)
 	-$(foreach e,$(EXTRA_LIBs),					\
@@ -193,43 +200,42 @@ uninstall: chk-prefix uninstall-findlib uninstall-doc
 
 # ---
 
+$(PKGNAME).install:
+	$(QUIET)exec 1>$@;
+ifneq ($(ALL_BINS),)
+	$(QUIET)exec 1>>$@;						\
+	echo 'bin: [';							\
+	$(foreach e,$(EXECS), echo '"?$(e).byte" {"$(e)$(BYTE_EXT)"}';	\
+	  		      echo '"?$(e).native" {"$(e)$(OPT_EXT)"}';)\
+	$(foreach e,$(EXTRA_EXECS), echo '"$(e)" {"$(basename $(e))"}';)\
+	echo ']';
+endif
+ifneq ($(ALL_LIBS),)
+	$(QUIET)exec 1>>$@;						\
+	echo 'lib: [';							\
+	$(foreach e,$(EXTRA_LIBs), echo '"$(e)" {"$(basename $(e))"}';)	\
+	echo ']';
+endif
+
 # The following indicates we are possibly installing through OPAM:
 ifneq ($(OPAM_PACKAGE_NAME),)
+  ifneq ($(OPAM_PACKAGE_NAME),$(PKGNAME))
+    $(OPAM_PACKAGE_NAME).install: $(PKGNAME).install
+	cp $< $@
+  endif
+
   .PHONY: install-opam
-  install-opam: install-findlib install-doc build doc force
-	$(QUIET)exec 1>"$(OPAM_PACKAGE_NAME).install";			\
-	  echo 'bin: [';
-    ifeq ($(ENABLE_BYTE),yes)
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  $(foreach e,$(EXECS),						\
-	    echo ' "_build/src/main/$(e).byte" {"$(e)'$(BYTE_EXT)'"}';)
-    endif
-    ifeq ($(ENABLE_NATIVE),yes)
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  $(foreach e,$(EXECS),						\
-	    echo ' "_build/src/main/$(e).native"			\
-	      {"$(e)'$(NATIVE_EXT)'"}';)
-    endif
-    ifneq ($(strip $(EXTRA_EXECS)),)
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  $(foreach e,$(EXTRA_EXECS),					\
-	    echo ' "$(e)" {"$(basename $(e))"}';)
-    endif
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  echo ']';
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  echo 'lib: [';
-    ifneq ($(strip $(EXTRA_LIBs)),)
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  $(foreach e,$(EXTRA_LIBs),					\
-	    echo ' "$(e)" {"$(basename $(e))"}';)
-    endif
-	$(QUIET)exec 1>>"$(OPAM_PACKAGE_NAME).install";			\
-	  echo ']';
+  install-opam: build install-findlib install-doc			\
+		$(OPAM_PACKAGE_NAME).install
 
   .PHONY: uninstall-opam
   uninstall-opam: uninstall-findlib uninstall-doc
   # Note the documentation directory could be removed by OPAM.
+
+  .PHONY: clean-$(OPAM_PACKAGE_NAME)-install
+  clean-$(OPAM_PACKAGE_NAME)-install:
+	rm -f $(OPAM_PACKAGE_NAME).install
+  clean: clean-$(OPAM_PACKAGE_NAME)-install
 endif
 
 # ---
