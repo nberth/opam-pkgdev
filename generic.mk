@@ -258,7 +258,8 @@ else
   PKGVERS0 = $(notdir $(abspath $(ROOT_DIRNAME)))
   __EXTRACT_VERS = \
     $(strip $(patsubst $(PKGNAME)$(1)%,%,$(filter $(PKGNAME)$(1)%,$(2))))
-  PKGVERS ?= $(strip $(or $(call __EXTRACT_VERS,.,$(PKGVERS0)),\
+  PKGVERS ?= $(strip $(or $(OPAM_PACKAGE_VERSION),\
+			  $(call __EXTRACT_VERS,.,$(PKGVERS0)),\
 			  $(call __EXTRACT_VERS,-,$(PKGVERS0)),\
 			  unknown))
 endif
