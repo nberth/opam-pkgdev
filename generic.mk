@@ -41,9 +41,15 @@ endif
 
 ifeq ($(ENABLE_BYTE),yes)
   LIBSUFF += cma
+  ifeq ($(ENABLE_DEBUG),yes)
+    LIBSUFF += d.cma
+  endif
 endif
 ifeq ($(ENABLE_NATIVE),yes)
   LIBSUFF += cmxa a
+  ifeq ($(ENABLE_PROFILING),yes)
+    LIBSUFF += p.cmxa
+  endif
 endif
 TARGETS = $(foreach p,$(AVAILABLE_LIBs),$(addprefix $(p).,$(LIBSUFF)))
 TARGETS += $(foreach p,$(AVAILABLE_LIB_ITFs),$(p).cmi)
