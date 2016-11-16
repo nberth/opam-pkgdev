@@ -114,13 +114,15 @@ force:
 
 # ---
 
+DOC_TARGETS ?= $(foreach p,$(AVAILABLE_LIBs),$(SRC)/$(p).docdir/index.html)
+
 .PHONY: doc
 doc: force
-ifneq ($(strip $(AVAILABLE_LIBs)),)
+ifneq ($(strip $(DOC_TARGETS)),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS)			\
 	  -ocamldoc "$(OCAMLDOC) $(OCAMLDOCFLAGS)"			\
 	  -no-sanitize -no-hygiene					\
-	  $(foreach p,$(AVAILABLE_LIBs),$(SRC)/$(p).docdir/index.html)
+	  $(DOC_TARGETS)
 endif
 
 # ---
@@ -158,14 +160,23 @@ chk-docdir: force
 
 # ---
 
+USE_PER_LIB_INSTALL_DOC ?= yes
+
 .PHONY: install-doc uninstall-doc
 ifeq ($(INSTALL_DOCS),yes)
-  install-doc: chk-docdir doc
+  .PHONY: install-doc-init install-doc-per-lib
+  install-doc-init: chk-docdir doc
 	rm -rf "$(DOCDIR)/$(PKGNAME)";
-	mkdir -p "$(DOCDIR)/$(PKGNAME)";
-	$(foreach p,$(AVAILABLE_LIBs),cp -r "_build/$(SRC)/$(p).docdir"	\
-	  "$(DOCDIR)/$(PKGNAME)/$(p)";)
+	install -d "$(DOCDIR)/$(PKGNAME)";
 
+  install-doc-per-lib: install-doc-init
+  ifeq ($(USE_DEFAULT_INSTALL_DOC),yes)
+	$(foreach p,$(AVAILABLE_LIBs),					\
+	  test -d "_build/$(SRC)/$(p).docdir" &&			\
+	    cp -r "_build/$(SRC)/$(p).docdir" "$(DOCDIR)/$(PKGNAME)/$(p)";)
+  endif
+
+  install-doc: install-doc-per-lib
   uninstall-doc: chk-docdir force
 	rm -rf "$(DOCDIR)/$(PKGNAME)";
 else

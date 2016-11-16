@@ -77,6 +77,23 @@ NO_DOCDIR_ERROR_MSG = Missing documentation directory: execute		\
 
 # ---
 
+# Custom rules for building & installing documentation
+
+# Example second target forces creation of a link in root directory:
+# DOC_TARGETS = doc.otarget src/<lib name>.docdir/index.html
+
+# Uncomment the following line to disable automatic installation of
+# html documentation directories for each library $(l) into
+# $(DOCDIR)/$(PKGNAME)/$(l):
+# USE_PER_LIB_INSTALL_DOC = no
+
+# Additional commands for html doc installation can be specified under
+# rule `install-doc' at the bottom;
+# install-doc:
+#	...
+
+# ---
+
 # The git submodule directory containing `generic.mk':
 OPAM_PKGDEV_DIR = opam-pkgdev
 
