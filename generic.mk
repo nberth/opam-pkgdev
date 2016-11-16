@@ -46,7 +46,7 @@ ifeq ($(ENABLE_BYTE),yes)
   endif
 endif
 ifeq ($(ENABLE_NATIVE),yes)
-  LIBSUFF += cmxa a
+  LIBSUFF += cmx cmxa a
   ifeq ($(ENABLE_PROFILING),yes)
     LIBSUFF += p.cmxa
   endif
