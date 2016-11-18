@@ -54,6 +54,9 @@ ENABLE_NATIVE = no
 ENABLE_DEBUG = no
 ENABLE_PROFILING = no
 
+# Executables built and run by `check' target:
+TEST_EXECS = test1 test2
+
 # This file should define PREFIX and DOCDIR variables, using a
 # configure script for instance; they could also be setup directly.
 -include config.mk

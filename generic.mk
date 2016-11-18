@@ -56,6 +56,7 @@ TARGETS += $(foreach p,$(AVAILABLE_LIB_ITFs),$(p).cmi)
 
 ifeq ($(ENABLE_BYTE),yes)
   TARGETS += $(addsuffix .byte,$(EXECS))
+  TEST_TARGETS += $(addsuffix .byte,$(TEST_EXECS))
 endif
 ifeq ($(ENABLE_NATIVE),yes)
   TARGETS += $(addsuffix .native,$(EXECS))
@@ -68,6 +69,7 @@ ifeq ($(ENABLE_PROFILING),yes)
 endif
 
 TARGETS := $(strip $(TARGETS))
+TEST_TARGETS := $(strip $(TEST_TARGETS))
 
 # ---
 
@@ -101,6 +103,7 @@ build: force $(EXTRA_DEPS)
   else
 	$(QUIET)echo "Nothing to build."
   endif
+
 
 .PHONY: clean
 clean: force
@@ -255,6 +258,17 @@ ifneq ($(OPAM_PACKAGE_NAME),)
 	rm -f $(OPAM_PACKAGE_NAME).install
   clean: clean-$(OPAM_PACKAGE_NAME)-install
 endif
+
+# ---
+
+# Build and run test files for now.
+.PHONY: check
+check: force $(EXTRA_DEPS)
+  ifneq ($(TEST_TARGETS),)
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TEST_TARGETS) --
+  else
+	$(QUIET)echo "Nothing to build."
+  endif
 
 # ---
 
