@@ -107,6 +107,12 @@ OPAM_FILES = descr opam
 DIST_FILES = configure LICENSE Makefile myocamlbuild.ml README src	\
     _tags version.ml.in TODO META
 
+# ---
+
+# If deduced from git, the name of the current branch is appended
+# (after a `+' sign) version string, unless it is $(MAIN_BRANCH):
+# MAIN_BRANCH = master
+
 # ----------------------------------------------------------------------
 
 # Leave this part as is:

@@ -276,6 +276,7 @@ check: force $(EXTRA_DEPS)
 HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 	          echo yes || echo no)
 ifeq ($(HAS_GIT),yes)
+  MAIN_BRANCH ?= master
   PKGVERS ?= $(shell git describe --tags --always)
   ifeq ($(STRIP_VERSION_STR),yes)
     # Remove commit info that is appended at the end for readability:
@@ -283,6 +284,9 @@ ifeq ($(HAS_GIT),yes)
     PKGVERS := $(patsubst %-g$(shell git describe --always		\
                      --abbrev),%,$(PKGVERS))
   endif
+  PKGBRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+  PKGVERS := $(PKGVERS)$(if $(PKGBRANCH),+$(PKGBRANCH))
+  PKGVERS := $(PKGVERS:+$(MAIN_BRANCH)=)
 else
   # Try to guess from project directory name:
   ROOT_DIRNAME = $(dir $(firstword $(MAKEFILE_LIST)))
