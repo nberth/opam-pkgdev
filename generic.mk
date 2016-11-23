@@ -278,15 +278,13 @@ HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 ifeq ($(HAS_GIT),yes)
   MAIN_BRANCH ?= master
   PKGVERS ?= $(shell git describe --tags --always)
-  ifeq ($(STRIP_VERSION_STR),yes)
-    # Remove commit info that is appended at the end for readability:
-    # this is ok as long as we have only one branch.
-    PKGVERS := $(patsubst %-g$(shell git describe --always		\
-                     --abbrev),%,$(PKGVERS))
-  endif
   PKGBRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-  PKGVERS := $(PKGVERS)$(if $(PKGBRANCH),+$(PKGBRANCH))
-  PKGVERS := $(PKGVERS:+$(MAIN_BRANCH)=)
+  PKGBRANCH := $(strip $(PKGBRANCH:$(MAIN_BRANCH)=))
+  ifneq ($(PKGBRANCH),)
+    # Replace detailed commit info with specific branch name.
+    DEVINFO := g$(shell git describe --always --abbrev)
+    PKGVERS := $(patsubst %-$(DEVINFO),%+$(PKGBRANCH),$(PKGVERS))
+  endif
 else
   # Try to guess from project directory name:
   ROOT_DIRNAME = $(dir $(firstword $(MAKEFILE_LIST)))
