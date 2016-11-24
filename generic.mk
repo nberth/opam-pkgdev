@@ -85,6 +85,7 @@ endif
 
 OCAMLBUILD ?= ocamlbuild -use-ocamlfind
 OCAMLDOC ?= ocamldoc
+TEST_FLAGS ?= -no-links
 NO_PREFIX_ERROR_MSG ?= Missing prefix: use "make PREFIX=..."
 NO_DOCDIR_ERROR_MSG ?= Missing documentation directory: use \
                        "make DOCDIR=..."
@@ -265,7 +266,8 @@ endif
 .PHONY: check
 check: force $(EXTRA_DEPS)
   ifneq ($(TEST_TARGETS),)
-	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TEST_TARGETS) --
+	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TEST_FLAGS)		\
+		$(TEST_TARGETS) --
   else
 	$(QUIET)echo "Nothing to build."
   endif
