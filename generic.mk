@@ -267,7 +267,12 @@ endif
 check: force $(EXTRA_DEPS)
   ifneq ($(TEST_TARGETS),)
 	$(QUIET)$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TEST_FLAGS)		\
-		$(TEST_TARGETS) --
+		$(TEST_TARGETS);
+	$(QUIET)for target in $(TEST_TARGETS); do			\
+		echo "Running $$target";				\
+		$(OCAMLBUILD) $(OCAMLBUILDFLAGS) $(TEST_FLAGS) 		\
+			-quiet -no-hygiene -no-sanitize $${target} --;	\
+	done;
   else
 	$(QUIET)echo "Nothing to build."
   endif
