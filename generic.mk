@@ -285,12 +285,15 @@ HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 ifeq ($(HAS_GIT),yes)
   MAIN_BRANCH ?= master
   PKGVERS ?= $(shell git describe --tags --always)
-  PKGBRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-  PKGBRANCH := $(strip $(PKGBRANCH:$(MAIN_BRANCH)=))
-  ifneq ($(PKGBRANCH),)
+  CURBRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+  CURBRANCH := $(strip $(CURBRANCH:$(MAIN_BRANCH)=))
+  ifneq ($(CURBRANCH),)
     # Replace detailed commit info with specific branch name.
     DEVINFO := g$(shell git describe --always --abbrev)
-    PKGVERS := $(patsubst %-$(DEVINFO),%+$(PKGBRANCH),$(PKGVERS))
+    PKGVERS := $(patsubst %-$(DEVINFO),%,$(PKGVERS))
+    PKGVERS := $(shell	v="$(PKGVERS)"; vx="$${v}-";			\
+			base="$${v%%-*}"; ext="$${vx\#*-}";		\
+			echo "$${base}~$(CURBRANCH)$${ext%%-*}")
   endif
 else
   # Try to guess from project directory name:
