@@ -41,9 +41,9 @@ endif
 
 ifeq ($(ENABLE_BYTE),yes)
   LIBSUFF += cma
-  ifeq ($(ENABLE_DEBUG),yes)
-    LIBSUFF += d.cma
-  endif
+endif
+ifeq ($(ENABLE_DEBUG),yes)
+  LIBSUFF += d.cma
 endif
 ifeq ($(ENABLE_NATIVE),yes)
   LIBSUFF += cmx cmxa a
