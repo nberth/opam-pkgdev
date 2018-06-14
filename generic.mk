@@ -73,8 +73,9 @@ TEST_TARGETS := $(strip $(TEST_TARGETS))
 
 # ---
 
-OPT_EXT = .opt
 BYTE_EXT = 
+OPT_EXT = .opt
+DBG_EXT = .d
 ifeq ($(ENABLE_NATIVE),yes)
   ifneq ($(ENABLE_BYTE),yes)
     OPT_EXT =
@@ -199,6 +200,8 @@ install: chk-prefix build install-findlib install-doc
 	install -d "$(PREFIX)/bin";
 	$(foreach e,$(EXECS), [ -x "$(e).byte" ] &&			\
 	  install "$(e).byte" "$(PREFIX)/bin/$(e)$(BYTE_EXT)" || true;)
+	$(foreach e,$(EXECS), [ -x "$(e).d.byte" ] &&			\
+	  install "$(e).d.byte" "$(PREFIX)/bin/$(e)$(DBG_EXT)" || true;)
 	$(foreach e,$(EXECS), [ -x "$(e).native" ] &&			\
 	  install "$(e).native" "$(PREFIX)/bin/$(e)$(OPT_EXT)" || true;)
 	$(foreach e,$(EXTRA_EXECS), [ -x "$(e)" ] &&			\
@@ -214,6 +217,7 @@ install: chk-prefix build install-findlib install-doc
 uninstall: chk-prefix uninstall-findlib uninstall-doc
 	-$(foreach e,$(EXECS),						\
 	  rm -f "$(PREFIX)/bin/$(e)$(BYTE_EXT)"				\
+		"$(PREFIX)/bin/$(e)$(DBG_EXT)"				\
 	        "$(PREFIX)/bin/$(e)$(OPT_EXT)";)
 	-$(foreach e,$(EXTRA_EXECS),					\
 	  rm -f "$(PREFIX)/bin/$(basename $(e))";)
@@ -228,6 +232,7 @@ ifneq ($(ALL_BINS),)
 	$(QUIET)exec 1>>$@;						\
 	echo 'bin: [';							\
 	$(foreach e,$(EXECS), echo '"?$(e).byte" {"$(e)$(BYTE_EXT)"}';	\
+			      echo '"?$(e).d.byte" {"$(e)$(DBG_EXT)"}';	\
 	  		      echo '"?$(e).native" {"$(e)$(OPT_EXT)"}';)\
 	$(foreach e,$(EXTRA_EXECS), echo '"$(e)" {"$(basename $(e))"}';)\
 	echo ']';
