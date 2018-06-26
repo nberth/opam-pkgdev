@@ -175,7 +175,7 @@ ifeq ($(INSTALL_DOCS),yes)
 	install -d "$(DOCDIR)/$(PKGNAME)";
 
   install-doc-per-lib: install-doc-init
-  ifeq ($(USE_DEFAULT_INSTALL_DOC),yes)
+  ifeq ($(USE_PER_LIB_INSTALL_DOC),yes)
 	$(foreach p,$(AVAILABLE_LIBs),					\
 	  test -d "_build/$(SRC)/$(p).docdir" &&			\
 	    cp -r "_build/$(SRC)/$(p).docdir" "$(DOCDIR)/$(PKGNAME)/$(p)";)
