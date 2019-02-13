@@ -125,7 +125,7 @@ generic.mk:
 	 elif test \! -f generic.mk; then echo				\
 "To build from this development tree, you first need to retrieve the"	\
 "$(OPAM_PKGDEV_DIR) submodule using \`git submodule update'."		\
-	 >/dev/stderr; exit 1; fi;
+	 1>&2; exit 1; fi;
 
 # -----------------------------------------------------------------------
 

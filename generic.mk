@@ -334,7 +334,7 @@ ifneq ($(PKGVERS),unknown)
   endif
 
   version.ml.in:
-	@echo "Creating \`$@'." >/dev/stderr;
+	@echo "Creating \`$@'." 1>&2;
 	$(QUIET)echo "let str = \"$(PKGVERS)\"" >$@
 
   clean-version: force
