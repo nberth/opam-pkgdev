@@ -297,7 +297,7 @@ ifeq ($(HAS_GIT),yes)
     DEVINFO := g$(shell git describe --always --abbrev)
     PKGVERS := $(patsubst %-$(DEVINFO),%,$(PKGVERS))
     PKGVERS := $(shell	v="$(PKGVERS)"; vx="$${v}-";			\
-			base="$${v%%-*}"; ext="$${vx\#*-}";		\
+			base="$${v%%-*}"; ext="$${vx#*-}";		\
 			echo "$${base}~$(CURBRANCH)$${ext%%-*}")
   endif
 else
