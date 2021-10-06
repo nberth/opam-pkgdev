@@ -289,7 +289,9 @@ HAS_GIT = $(shell command -v git 2>&1 >/dev/null && test -d ".git" &&	\
 	          echo yes || echo no)
 ifeq ($(HAS_GIT),yes)
   MAIN_BRANCH ?= master
-  PKGVERS ?= $(shell git describe --tags --always)
+  PKGVERS ?= $(shell git describe --tags --always			\
+		$(if $(VERSTAGS_PREFIX),--match $(VERSTAGS_PREFIX)*,))
+  PKGVERS := $(strip $(patsubst $(VERSTAGS_PREFIX)%,%,$(PKGVERS)))
   CURBRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
   CURBRANCH := $(strip $(CURBRANCH:$(MAIN_BRANCH)=))
   ifneq ($(CURBRANCH),)
@@ -299,6 +301,9 @@ ifeq ($(HAS_GIT),yes)
     PKGVERS := $(shell	v="$(PKGVERS)"; vx="$${v}-";			\
 			base="$${v%%-*}"; ext="$${vx#*-}";		\
 			echo "$${base}~$(CURBRANCH)$${ext%%-*}")
+  endif
+  ifeq ($(VERSTAGS_KEEP),yes)
+    PKGVERS := $(VERSTAGS_PREFIX)$(PKGVERS)
   endif
 else
   # Try to guess from project directory name:

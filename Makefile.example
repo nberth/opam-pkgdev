@@ -113,6 +113,15 @@ DIST_FILES = configure LICENSE Makefile myocamlbuild.ml README src	\
 # (after a `+' sign) version string, unless it is $(MAIN_BRANCH):
 # MAIN_BRANCH = master
 
+# Only consider tags with the following prefix as version strings.
+# Take care: allowed characters should be restricted to alphanumeric,
+# and the prefix should end with some kind of punctuation like a dash
+# as below.
+# VERSTAGS_PREFIX = someprefix-
+
+# Uncomment to keep the prefix above in version strings.
+# VERSTAGS_KEEP = yes
+
 # ----------------------------------------------------------------------
 
 # Leave this part as is:
